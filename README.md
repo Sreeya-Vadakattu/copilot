@@ -1,9 +1,14 @@
+# GitHub Copilot Test - System Uptime Script
 
-# copilot
+## Task Overview
+This script prints the system uptime using a Linux command. The initial script was generated using **GitHub Copilot on GitHub.com** by typing a comment in a new Python file.
 
-## System Uptime Script
+## Copilot's Suggested Code
+```python
+import os
 
-To print your system uptime, run the following command in your terminal:
+# Get the system uptime
+uptime = os.popen('uptime -p').read()
 
-```bash
-python copilot_test.py
+# Print the system uptime
+print("System Uptime: " + uptime)
