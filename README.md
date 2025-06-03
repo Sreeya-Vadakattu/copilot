@@ -1,7 +1,6 @@
-## Copilot Uptime Script
+### How to Run the Script
 
-### What Copilot Suggested:
-Copilot initially suggested using:
-```python
-import os
-print(subprocess.run("uptime").read())
+To print the system uptime, run the following command in your terminal from the project directory:
+
+```bash
+python copilot_test.py
