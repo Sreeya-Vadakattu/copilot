@@ -1,21 +1,28 @@
-import subprocess
-import platform
+import os
+import time
 
-def get_uptime():
-    try:
-        if platform.system() == "Windows":
-            result = subprocess.run(["net", "statistics", "workstation"], capture_output=True, text=True, check=True)
-            lines = result.stdout.splitlines()
-            for line in lines:
-                if "Statistics since" in line:
-                    print("System Uptime:", line)
-                    return
-            print("Could not determine uptime on Windows.")
-        else:
-            result = subprocess.run(["uptime"], capture_output=True, text=True, check=True)
-            print("System Uptime:", result.stdout.strip())
-    except Exception as e:
-        print("Error getting uptime:", e)
+def get_system_uptime():
+    if os.name == 'posix':
+        # For Unix/Linux systems
+        with open('/proc/uptime', 'r') as f:
+            uptime_seconds = float(f.readline().split()[0])
+            uptime_string = str(time.strftime('%H:%M:%S', time.gmtime(uptime_seconds)))
+            print(f"System uptime: {uptime_string}")
+    elif os.name == 'nt':
+        # For Windows systems
+        import ctypes
+        import sys
+        import datetime
+
+        # GetTickCount returns milliseconds since system started
+        GetTickCount64 = ctypes.windll.kernel32.GetTickCount64
+        GetTickCount64.restype = ctypes.c_ulonglong
+        millis = GetTickCount64()
+        uptime_seconds = millis / 1000.0
+        uptime_string = str(datetime.timedelta(seconds=int(uptime_seconds)))
+        print(f"System uptime: {uptime_string}")
+    else:
+        print("Unsupported OS")
 
 if __name__ == "__main__":
-    get_uptime()
+    get_system_uptime()
