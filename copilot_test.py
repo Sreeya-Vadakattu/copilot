@@ -1,19 +1,26 @@
 import os
-import sys
-import time
 import platform
 import subprocess
+import sys
+import time
 from datetime import datetime
 
-def get_uptime_windows():
+def uptime_linux():
     try:
-        # Use systeminfo to get the system boot time
+        with open('/proc/uptime', 'r') as f:
+            uptime_seconds = float(f.readline().split()[0])
+        print("System uptime:", time.strftime('%H:%M:%S', time.gmtime(uptime_seconds)))
+    except Exception as e:
+        print("Linux uptime failed:", e)
+
+def uptime_windows():
+    try:
+        # Try systeminfo
         output = subprocess.check_output("systeminfo", shell=True, text=True, stderr=subprocess.DEVNULL)
         for line in output.splitlines():
-            if "System Boot Time" in line or "Systemstartzeit" in line:  # German Windows too
+            if "System Boot Time" in line or "Systemstartzeit" in line:  # English or German
                 boot_time_str = line.split(":", 1)[1].strip()
                 try:
-                    # Try parsing with common formats
                     boot_time = datetime.strptime(boot_time_str, '%m/%d/%Y, %I:%M:%S %p')
                 except ValueError:
                     try:
@@ -27,32 +34,36 @@ def get_uptime_windows():
                 return
         print("Could not determine uptime from systeminfo output.")
     except Exception as e:
-        print("Could not determine uptime on Windows.", e)
+        print("Windows uptime failed:", e)
 
-def get_uptime_linux():
+def uptime_macos():
     try:
-        with open('/proc/uptime', 'r') as f:
-            uptime_seconds = float(f.readline().split()[0])
-            uptime_string = str(time.strftime('%H:%M:%S', time.gmtime(uptime_seconds)))
-            print(f"System uptime: {uptime_string}")
+        output = subprocess.check_output(['sysctl', '-n', 'kern.boottime'], text=True)
+        boot_time_str = output.strip().split('=')[1].split(',')[0].strip()
+        boot_time = datetime.fromtimestamp(int(boot_time_str))
+        now = datetime.now()
+        uptime = now - boot_time
+        print(f"System uptime: {str(uptime).split('.')[0]}")
     except Exception as e:
-        print("Could not determine uptime on Linux.", e)
+        print("macOS uptime failed:", e)
 
-def get_uptime_unix():
+def uptime_fallback():
     try:
         output = subprocess.check_output("uptime", shell=True, text=True)
         print("System uptime:", output.strip())
     except Exception as e:
-        print("Could not determine uptime with 'uptime' command.", e)
+        print("Generic uptime failed:", e)
 
-def get_system_uptime():
+def main():
     system = platform.system()
-    if system == "Windows":
-        get_uptime_windows()
-    elif system == "Linux":
-        get_uptime_linux()
+    if system == "Linux":
+        uptime_linux()
+    elif system == "Windows":
+        uptime_windows()
+    elif system == "Darwin":
+        uptime_macos()
     else:
-        get_uptime_unix()
+        uptime_fallback()
 
 if __name__ == "__main__":
-    get_system_uptime()
+    main()
