@@ -5,10 +5,12 @@ def get_uptime():
     try:
         if platform.system() == "Windows":
             result = subprocess.run(["net", "statistics", "workstation"], capture_output=True, text=True, check=True)
-            for line in result.stdout.splitlines():
+            lines = result.stdout.splitlines()
+            for line in lines:
                 if "Statistics since" in line:
                     print("System Uptime:", line)
-                    break
+                    return
+            print("Could not determine uptime on Windows.")
         else:
             result = subprocess.run(["uptime"], capture_output=True, text=True, check=True)
             print("System Uptime:", result.stdout.strip())
